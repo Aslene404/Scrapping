@@ -14,7 +14,7 @@ time.sleep(1)
 cookies_button = driver.find_element_by_id("mkc-btn-select")
 if cookies_button.is_displayed():
     driver.execute_script("arguments[0].click();", cookies_button)
-    time.sleep(1)
+    time.sleep(2)
 z = 0
 while z != -1:
 
