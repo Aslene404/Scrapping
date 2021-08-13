@@ -9,24 +9,40 @@ driver = driver_config.configure_driver()
 
 z = 0
 while z != -1:
+
+
     url = "https://pflegefinder.bkk-dachverband.de/pflegeheime/searchresult.php?searchdata%5BmaxDistance%5D=0#/limit/20/offset/"+str(z)
     z+=20
+    zx=z
+
     driver.get(url)
-    time.sleep(1)
+    time.sleep(3)
+
+
     cookies_button = driver.find_element_by_id("mkc-btn-select")
     if cookies_button.is_displayed():
         driver.execute_script("arguments[0].click();", cookies_button)
         time.sleep(2)
 
-    more_button = driver.find_elements_by_link_text('›')
+
 
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
     res = {}
+    next_button=soup.findAll("a")
+    for nb in next_button:
+        print(nb.get_text().strip())
+        if nb.get_text().strip()!="›":
+            z=-1
+        if nb.get_text().strip()=="›":
+            z=zx
+            break
+
     table = soup.find("table", {"id": "table-pei"}).find("tbody")
 
 
     tr = table.findAll("tr")
+
     for r in tr:
         name=r.find("a").get_text()
         print(name)
@@ -38,9 +54,11 @@ while z != -1:
         if number_of_beds=="k.A.":
             number_of_beds="N/A"
         print(number_of_beds)
+
         link = r.find("a", href=True)
         print(link['href'])
         driver.get(link['href'])
+
 
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
@@ -126,14 +144,14 @@ while z != -1:
                             contact_person_x=cp.next_sibling.next_sibling.strip().split("-")[0].strip()
 
                         if contact_person_x.find(",")!=-1:
-                            contact_person_x = cp.next_sibling.next_sibling.strip().split(",")[0]
+                            contact_person_x = cp.next_sibling.next_sibling.strip().split(",")[0].strip()
                         print(contact_person_x)
 
                         cpx=contact_person_x.split(" ")
                         if cpx[0]=="Frau" or cpx[0]=="Herr":
                             contact_person_salutation=cpx[0]
                             cpx.pop(0)
-                        contact_person_lname=cpx[len(cpx)-1]
+                        contact_person_lname=cpx[len(cpx)-1].strip()
                         if contact_person_lname[0]=="(":
                             cpx.pop(len(cpx)-1)
                             contact_person_lname = cpx[len(cpx) - 1]
@@ -170,9 +188,8 @@ while z != -1:
         print(file_data)
         xs = mycol.insert_one(file_data)
         print("Successfully inserted into mongo database with id " + str(xs.inserted_id))
-    if len(more_button)==0 and r==tr[len(tr)-1]:
-        break
-        driver.quit()
+
+
 driver.quit()
 
 
