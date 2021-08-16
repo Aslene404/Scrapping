@@ -15,9 +15,9 @@ time.sleep(1)
 cookies_button = driver.find_element_by_id("mkc-btn-select")
 if cookies_button.is_displayed():
     driver.execute_script("arguments[0].click();", cookies_button)
-    time.sleep(2)
+    time.sleep(10)
 z = 0
-while z != -1:
+"""while z != -1:
 
     more_button = driver.find_element_by_id("more_btn")
     if more_button.is_displayed():
@@ -25,11 +25,12 @@ while z != -1:
         time.sleep(1)
         
     else :
-        break
+        break"""
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 res = {}
 table = soup.find("tbody")
+urls=[]
 
 tr = table.findAll("tr")
 for r in tr:
@@ -37,7 +38,9 @@ for r in tr:
     link = r.find("a", href=True)
     true_link = "https://arztfinder.bkk-dachverband.de/suche/" + link['href']
     print(true_link)
-    driver.get(true_link)
+    urls.append(true_link)
+for slru in urls :
+    driver.get(slru)
     time.sleep(1)
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
