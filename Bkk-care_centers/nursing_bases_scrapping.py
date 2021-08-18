@@ -1,10 +1,11 @@
-import json
-import random
+
 from bs4 import BeautifulSoup
 import time
 import driver_config
-import mongo_config_C
-mycol = mongo_config_C.connection_mongo()
+import mongo_config
+import nursing_bases_functions
+
+mycol = mongo_config.connection_mongo()
 driver = driver_config.configure_driver()
 zone=["Baden-Württemberg","Bayern","Berlin","Brandenburg","Bremen","Hamburg","Hessen","Mecklenburg-Vorpommern","Niedersachsen","Nordrhein-Westfalen","Rheinland-Pfalz","Saarland","Schleswig-Holstein"]
 for zon in zone :
@@ -42,12 +43,14 @@ for zon in zone :
 
         tr = table.findAll("tr")
         for r in tr:
+            """extracting name"""
             fake_name=r.find('a')
             if fake_name==None:
                 continue
             else:
                 name=fake_name.get_text()
             print(name)
+            """extracting street and house number"""
             fake_address = r.find("i", {"class": "fas fa-map-marker"})
             if fake_address != None:
                 address = fake_address.next_sibling.strip()
@@ -59,47 +62,7 @@ for zon in zone :
                     house_number = r.find("strong").next_sibling.strip().replace("- ", "").split(",")[1].strip()
             print(street)
             print(house_number)
-            link = r.find("a", {"style": "color:inherit"}, href=True)
-            true_link = "https://pflegefinder.bkk-dachverband.de/pflegeberatung/pflegestuetzpunkte/" + link['href']
-            print(true_link)
-            driver.get(true_link)
-
-
-            html = driver.page_source
-            soup = BeautifulSoup(html, 'html.parser')
-            content = soup.findAll("div", {"id": "col-landscape"})
-            for c in content:
-                fake_phone = c.find("i", {"class", "fas fa-phone"})
-                if fake_phone == None:
-                    phone = "N/A"
-                else:
-                    phone = fake_phone.next_sibling.strip().replace("Telefon: ", "")
-
-                if phone == "k.A.":
-                    phone = "N/A"
-                print(phone)
-                fake_fax = c.find("i", {"class", "fas fa-fax"})
-                if fake_fax == None:
-                    fax = "N/A"
-                else:
-                    fax = fake_fax.next_sibling.strip().replace("Fax: ", "")
-
-                if fax == "-":
-                    fax = "N/A"
-                print(fax)
-
-                fake_mail = c.find("i", {"class", "fas fa-envelope"})
-
-                if fake_mail != None:
-                    mail = fake_mail.next_sibling.next_sibling.get_text().strip().replace(" ", "")
-                if mail == "-":
-                    mail = "N/A"
-                print(mail)
-                fake_website = c.findAll("div",{"class", "block"})[1].find("i", {"class", "fas fa-globe"})
-                if fake_website != None:
-                    website = fake_website.next_sibling.next_sibling.get_text()
-                print(website)
-                res = {'name': name,
+            res = {'name': name,
                    'street': street,
                    'house_number': house_number,
                    'phone': [phone],
@@ -117,12 +80,21 @@ for zon in zone :
                    'contact_person_lname': contact_person_lname,
                    'contact_person_salutation': contact_person_salutation
                    }
-                final_string = json.dumps(res)
-                print(final_string)
-                file_data = json.loads(final_string)
-                print(file_data)
-                xs = mycol.insert_one(file_data)
-                print("Successfully inserted into mongo database with id " + str(xs.inserted_id))
+            """redirecting to nurse_base url"""
+            link = r.find("a", {"style": "color:inherit"}, href=True)
+            true_link = "https://pflegefinder.bkk-dachverband.de/pflegeberatung/pflegestuetzpunkte/" + link['href']
+            print(true_link)
+            driver.get(true_link)
+
+
+            html = driver.page_source
+            soup = BeautifulSoup(html, 'html.parser')
+            content = soup.findAll("div", {"id": "col-landscape"})
+            for c in content:
+                res= nursing_bases_functions.deep_info_extraction(c, res)
+
+                final_output = mongo_config.insert_mongo(res, mycol)
+                print(final_output)
         if len(more_button) == 0 and r == tr[len(tr) - 1]:
             break
 

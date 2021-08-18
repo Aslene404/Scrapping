@@ -3,9 +3,10 @@ import json
 from bs4 import BeautifulSoup
 import time
 import driver_config
-import mongo_config_MW
+import mongo_config
+import midwifes_functions
 
-mycol = mongo_config_MW.connection_mongo()
+mycol = mongo_config.connection_mongo()
 driver = driver_config.configure_driver()
 url = "https://hebammenfinder.bkk-dachverband.de/suche/suchergebnis.php"
 driver.get(url)
@@ -48,51 +49,10 @@ for r in tr:
     td = r.findAll("td")
     data = []
     for d in td:
-        name_ex = d.findAll("strong")
-        for n in name_ex:
-            name = n.get_text()
-            print(name)
+        res=midwifes_functions.info_extraction(d,res)
+        data=midwifes_functions.service_extraction(d,data)
 
 
-
-            first_name = name.split()[0]
-            print(first_name)
-            last_name = name.split(' ', 1)[1]
-            print(last_name)
-
-
-            phone_mail = d.findAll("a")
-            if len(phone_mail) == 2:
-                phone = phone_mail[0].get_text().strip().replace("Telefon: ", "")
-                mail = phone_mail[1].get_text().strip().replace("E-Mail: ", "")
-            if len(phone_mail) == 1:
-                phone = phone_mail[0].get_text().strip().replace("Telefon: ", "")
-                mail = "N/A"
-            if len(phone_mail) == 0:
-                phone = "N/A"
-                mail = "N/A"
-
-            print(phone)
-
-            print(mail)
-            res = {
-                'branche':'health',
-                'category': 'midwife',
-                'salutation': 'Frau',
-                'first_name': first_name,
-                'last_name': last_name,
-                'phone': [phone],
-                'mail': mail
-            }
-
-        serv = d.findAll("span", {"class": "sr-only"})
-
-        for s in serv:
-
-            if s.get_text() == ": Ja":
-                data.append(True)
-            else:
-                data.append(False)
     print(data)
     if len(data) == 8:
         schwangerenvorsorge = data[2]
@@ -126,6 +86,6 @@ for r in tr:
     final_string = json.dumps(res)
     file_data = json.loads(final_string)
     if data != []:
-        xs = mycol.insert_one(file_data)
-        print("Successfully inserted into mongo database with id " + str(xs.inserted_id))
+        final_output = mongo_config.insert_mongo(res, mycol)
+        print(final_output)
 driver.quit()

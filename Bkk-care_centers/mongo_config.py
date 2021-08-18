@@ -7,7 +7,7 @@ def connection_mongo():
     """connect to care center mongoDB on local"""
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["BKK"]
-    mycol = mydb["Hospitals"]
+    mycol = mydb["Care"]
     return mycol
 def insert_mongo(res,mycol):
     """insert extracted care center info to mongoDB"""
