@@ -111,7 +111,7 @@ def deep_info_extraction(c):
             specialties.append(li.get_text().strip())
     print(specialties)
     myclinic = ""
-    cli = connection_db_hospital.get_clinic_by_street_nb_house()
+    cli = connection_db_hospital.get_clinic_by_street_nb_house(street, house_number)
 
     print(cli)
     if cli:
@@ -146,9 +146,14 @@ def get_doctor_urls(driver):
     urls = []
 
     tr = table.findAll("tr")
-    for r in tr:
+    y = 1
+    tr_ex=tr[-20:]
+
+    for r in tr_ex:
+
         link = r.find("a", href=True)
         true_link = "https://arztfinder.bkk-dachverband.de/suche/" + link['href']
-        print(true_link)
+        print(str(y)+true_link)
+        y+=1
         urls.append(true_link)
     return urls

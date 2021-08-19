@@ -5,6 +5,10 @@ import time
 import driver_config
 import mongo_config
 mycol = mongo_config.connection_mongo()
+companies=mongo_config.connection_mongo_to_companies()
+
+
+
 driver = driver_config.configure_driver()
 url = "https://login.xing.com/?dest_url=https%3A%2F%2Fwww.xing.com%2Fsearch%2Fcompanies"
 driver.get(url)
@@ -19,22 +23,50 @@ driver.find_element_by_id("username").send_keys(username)
 driver.find_element_by_id("password").send_keys(password)
 driver.find_element_by_css_selector(".fYOVsO").click()
 time.sleep(3)
-location_id=""
-keyword="ion2s"
-url="https://www.xing.com/search/companies?filter.location%5B%5D="+location_id+"&keywords="+keyword
-driver.get(url)
-time.sleep(1)
-html = driver.page_source
-soup = BeautifulSoup(html, 'html.parser')
-res = {}
+for x in companies.find({}, {"_id": 0, "name": 1, "registered_address": 1}):
+    print(x)
+
+    if len(x) == 2:
+        postcode = x["registered_address"].strip()
+        postcode=postcode.split(" ")
+        for i in range(len(postcode)-1,0,-1):
+            if postcode[i].strip().isdigit():
+                postcode=postcode[i].strip()
+                break
+
+        keyword = x["name"].strip().replace(" ", "%20").strip()
+        print(postcode)
+        print(keyword)
 
 
-table = soup.find("div",{"role":"list"})
+        url="https://www.xing.com/search/companies?zip_code="+postcode+"&keywords="+keyword
+        driver.get(url)
+        time.sleep(1)
+        html = driver.page_source
+        soup = BeautifulSoup(html, 'html.parser')
+        res = {}
 
-tr = table.findAll("div",{"class":"search-card-style-container-69860b53"})
-if len(tr)==1:
-    for r in tr:
-        name=tr.find("div",{"class":"search-card-style-content-20754fd7"}).findAll("div")[0]
+
+        table = soup.find("div",{"role":"list"})
+
+        tr = table.findAll("div",{"class":"search-card-style-container-69860b53"})
+        if len(tr)==1:
+            for r in tr:
+                name=r.find("div",{"class":"search-card-style-content-20754fd7"}).findAll("div")[0].get_text().strip()
+                print(name)
+                address=r.find("div",{"class":"search-card-style-content-20754fd7"}).findAll("div")[1].get_text().strip()
+                print(address)
+                ort=address.split(",")[0].strip()
+                print(ort)
+                bundesland=address.split(",")[1].strip()
+                print(bundesland)
+                xing_users=r.find("div",{"class":"search-card-style-content-20754fd7"}).findAll("div")[2].get_text().strip()
+                xing_users=xing_users.replace("XING members: ","").strip()
+                print(xing_users)
+                worker_range=r.find("div",{"class":"search-card-style-content-20754fd7"}).findAll("div")[3].get_text().strip()
+                worker_range=worker_range.replace("Employees: ","")
+                print(worker_range)
+
 
 """for r in tr:
 
