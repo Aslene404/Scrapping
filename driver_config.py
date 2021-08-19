@@ -9,7 +9,3 @@ def configure_driver():
     # options.add_argument('--headless')
     driver = webdriver.Chrome(executable_path=r"C:/webdriver/chromedriver.exe", options=options)
     return driver
-
-
-if __name__ == "__main__":
-    configure_driver()

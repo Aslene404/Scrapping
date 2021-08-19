@@ -1,5 +1,11 @@
-def deep_info_extraction(c,res,clinics,collegues):
+from bs4 import BeautifulSoup
+import connection_db
+from bkk_hospitals import connection_db as connection_db_hospital
+
+
+def deep_info_extraction(c):
     """extracts more information from each page """
+    collegues = []
     name = c.find("h1").get_text()
     print(name)
     salutation = name.split()[0]
@@ -105,8 +111,8 @@ def deep_info_extraction(c,res,clinics,collegues):
             specialties.append(li.get_text().strip())
     print(specialties)
     myclinic = ""
-    cli = clinics.find_one({"street": street,
-                            "city": house_number})
+    cli = connection_db_hospital.get_clinic_by_street_nb_house()
+
     print(cli)
     if cli:
         myclinic = cli.name()
@@ -131,3 +137,18 @@ def deep_info_extraction(c,res,clinics,collegues):
         'group_practice': group_practice,
         'collegues': collegues}
     return res
+
+
+def get_doctor_urls(driver):
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+    table = soup.find("tbody")
+    urls = []
+
+    tr = table.findAll("tr")
+    for r in tr:
+        link = r.find("a", href=True)
+        true_link = "https://arztfinder.bkk-dachverband.de/suche/" + link['href']
+        print(true_link)
+        urls.append(true_link)
+    return urls
