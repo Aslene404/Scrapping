@@ -6,37 +6,35 @@ import driver_config
 import connection_db
 import midwifes_functions
 
+
 def scrape():
     driver = driver_config.configure_driver()
     url = "https://hebammenfinder.bkk-dachverband.de/suche/suchergebnis.php"
     driver.get(url)
     time.sleep(1)
-    cookies_button = driver.find_element_by_id("mkc-btn-select")
+    cookies_button = driver.find_element_by_id("mkc-btn-select")  # locates the cookie accept button
     if cookies_button.is_displayed():
-        driver.execute_script("arguments[0].click();", cookies_button)
+        driver.execute_script("arguments[0].click();", cookies_button)  # clicks the located button
         time.sleep(2)
 
+    inserted_documents = 0
     z = 0
     while z != -1:
 
-        more_button = driver.find_element_by_id("more_btn")
+        more_button = driver.find_element_by_id("more_btn")  # locates the "show more" button
         if more_button.is_displayed():
-            driver.execute_script("arguments[0].click();", more_button)
+            driver.execute_script("arguments[0].click();", more_button)  # clicks the located button
             time.sleep(1)
-        else :
+        else:
             break
-
-
-
-
 
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
-    res = {}
+    res = {}  # initiate resulted dictionary
     table = soup.find("table")
 
-    tr = table.findAll("tr")
-    th = table.findAll("th")
+    tr = table.findAll("tr")  # gets all the table rows
+    th = table.findAll("th")  # gets all the table headers
     schwangerenvorsorge = False
     hausgeburt = False
     beleggeburt = False
@@ -49,9 +47,8 @@ def scrape():
         td = r.findAll("td")
         data = []
         for d in td:
-            res=midwifes_functions.info_extraction(d,res)
-            data=midwifes_functions.service_extraction(d,data)
-
+            res = midwifes_functions.info_extraction(d, res)  # resulted informations
+            data = midwifes_functions.service_extraction(d, data)  # array containing the midwife's service
 
         print(data)
         if len(data) == 8:
@@ -84,9 +81,12 @@ def scrape():
                      ]
         res["specialty"] = specialty
         final_string = json.dumps(res)
-        file_data = json.loads(final_string)
+        file_data = json.loads(final_string)  # converting the result to json
         if data != []:
-            final_output = connection_db.insert_new_midwife(file_data)
+            final_output = connection_db.insert_new_midwife(
+                file_data)  # inserting the resulted json file to the data base
             print(final_output)
+            inserted_documents += 1
+            print(str(inserted_documents) + " documents were inserted so far")
     driver.quit()
     return

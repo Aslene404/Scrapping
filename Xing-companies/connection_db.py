@@ -3,10 +3,11 @@ import pymongo
 
 def connection_mongo():
     """connect to mongo on local"""
-    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-    mydb = myclient["mydatabase"]
-    mycol = mydb["Xing"]
-    return mycol
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = client["Xing"]
+    return db
+
+
 def connection_mongo_to_companies():
     """connect to mongo on local"""
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -15,5 +16,8 @@ def connection_mongo_to_companies():
     return mycol
 
 
-if __name__ == "__main__":
-    connection_mongo()
+def insert_new_company(file_data):
+    """insert extracted care center info to mongoDB"""
+    db = connection_mongo()
+    result = db.Companies.insert_one(file_data)
+    return result
