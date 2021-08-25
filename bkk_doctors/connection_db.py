@@ -13,12 +13,20 @@ def insert_new_doctor(file_data):
     db = connection_mongo()
     result = db.doctors.insert_one(file_data)
     return result
+def get_doctor_url():
+    """returns the doctor's url source """
 
-
-def is_exit_with_error():
-    """returns if the program exited with an error last time """
     db = connection_mongo()
-    result = db.doctors.find({"exit_with_error": 1})
-    for re in result:
-        res_ex = re
-    return res_ex
+    result = db.doctors.find()
+
+    return result
+def get_doctor_info(url):
+    db = connection_mongo()
+    result = db.doctors.find_one({"source_url": url})
+
+    return result
+
+
+
+
+

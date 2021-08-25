@@ -3,36 +3,14 @@ import connection_db
 from bkk_hospitals import connection_db as connection_db_hospital
 
 
-def deep_info_extraction(c):
+def deep_info_extraction(c,res):
     """extracts more information from each page """
     collegues = []
-    name = c.find("h1").get_text()
-    print(name)
-    salutation = name.split()[0]  # the first word of the whole extracted name (usally Frau or Herr)
-    print(salutation)
-    proto = name.split(' ', 1)[1]  # gets the rest of the name after the salutation
-    print(proto)
-    splits = proto.split()
-    title = ""
-    for split in splits:
-        if len(split) == 2 or split.find("-") != -1 and split.find("-") != 0:
-            break
-        if split[len(split) - 1] == "." or split[len(split) - 1] == ")":
-            title += split + " "  # add all the found titles into one string
 
-    print(title)
-    first_last = proto.replace(title, "")  # remove title from the rest of the name after the salutation
-    print(first_last)
-    first_name = first_last.split()[0]  # gets the first name from the full name
-    print(first_name)
-    last_name = first_last.split(' ', 1)[1]  # gets the last name from the full name
-    print(last_name)
+
+
     info = c.findAll("div", {"class": "col-sm-6 col-xs-12"})  # gets all contact information from the page
 
-    street = info[0].findAll("br")[0].next_sibling.strip()  # gets the street from the contact informations
-    print(street)
-    house_number = info[0].findAll("br")[1].next_sibling.strip()  # gets the house number from the contact informations
-    print(house_number)
     phone = info[0].find("i", {"class": "fa fa-phone"}).next_sibling.strip().replace("Telefon: ",
                                                                                      "")  # gets the phone number from the contact informations and removes the Telefon: from the obtained string
 
@@ -112,38 +90,18 @@ def deep_info_extraction(c):
             print(li.get_text().strip())
             specialties.append(li.get_text().strip())
     print(specialties)
-    myclinic = ""
-    cli = connection_db_hospital.get_clinic_by_street_nb_house(street,
-                                                               house_number)  # gets the matching clinic for the doctor's address
 
-    print(cli)
-    if cli != None:
-        for i in cli:
-            if i == "name":
-                myclinic = cli[i]  # gets the clinic's name
-                print(myclinic)
 
-    res = {
-        'verification_name': name,
-        'title': title,
-        'salutation': salutation,
-        'first_name': first_name,
-        'last_name': last_name,
-        'street': street,
-        'house_number': house_number,
-        'branche': 'health',
-        'category': 'doctors',
-        'phone': [phone],
-        'website': true_website,
-        'fax': fax,
-        'specialty': specialties,
-        'clinic': myclinic,
-        'health_insurance_approval': health_insurance_approval,
-        'family_doctor': family_doctor,
-        'home_visits': home_visits,
-        'group_practice': group_practice,
-        'collegues': collegues,
-        'exit_with_error': 0}
+    res["phone"] = [phone]
+    res["website"] = true_website
+    res["fax"] = fax
+    res["specialty"] = specialties
+    res["health_insurance_approval"] = health_insurance_approval
+    res["family_doctor"] = family_doctor
+    res["home_visits"] = home_visits
+    res["group_practice"] = group_practice
+    res['collegues'] = collegues
+
     return res
 
 
@@ -227,8 +185,7 @@ def info_extraction(r):
         'branche': 'health',
         'category': 'doctors',
         'clinic': myclinic,
-        'source_url': true_link,
-        'exit_with_error': 0
+        'source_url': true_link
     }
 
     return res2
