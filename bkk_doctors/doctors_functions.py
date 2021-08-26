@@ -101,6 +101,7 @@ def deep_info_extraction(c,res):
     res["home_visits"] = home_visits
     res["group_practice"] = group_practice
     res['collegues'] = collegues
+    res['updated']=True
 
     return res
 
@@ -185,7 +186,8 @@ def info_extraction(r):
         'branche': 'health',
         'category': 'doctors',
         'clinic': myclinic,
-        'source_url': true_link
+        'source_url': true_link,
+        'updated':False
     }
 
     return res2

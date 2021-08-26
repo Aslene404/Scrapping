@@ -1,12 +1,10 @@
 import time
 import datetime
-
-import care_scrapping
+import xing_scrapping
 
 if __name__ == '__main__':
     start_time = time.time()
-
-    care_scrapping.scrape()
+    xing_scrapping.scrape()
     exc_time = (time.time() - start_time)  # exc time
     str(datetime.timedelta(seconds=exc_time))
 
