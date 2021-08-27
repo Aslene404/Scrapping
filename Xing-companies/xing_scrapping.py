@@ -92,5 +92,6 @@ def scrape():
                 file_data)  # inserting the resulted json file to the data base
             print(final_output)
             continue
-    driver.quit()
+        driver.quit()
+        break
     return
