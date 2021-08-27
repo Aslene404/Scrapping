@@ -208,5 +208,6 @@ def scrape():
             continue
 
 
-    driver.quit()
+        driver.quit()
+        break
     return
